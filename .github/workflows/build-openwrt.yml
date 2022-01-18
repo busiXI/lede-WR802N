@@ -84,7 +84,7 @@ jobs:
       run: |
         [ -e files ] && mv files openwrt/files
         [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
-        [ -e $MACH_FILE ] && mv $MACH_FILE openwrt/target/linux/ar71xx/files/arch/mips/ath79
+        [ -e $MACH_FILE ] && mv $MACH_FILE openwrt/target/linux/ar71xx/files/arch/mips/ath79/mach-tl-wr802n.c
         cat openwrt/target/linux/ar71xx/files/arch/mips/ath79/mach-tl-wr802n.c
         chmod +x $DIY_P2_SH
         cd openwrt
