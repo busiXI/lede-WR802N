@@ -61,6 +61,9 @@ cat target/linux/ar71xx/base-files/etc/board.d/02_network
 sed -i '88a \\tath79_eth1_data.phy_if_mode = PHY_INTERFACE_MODE_MII\;\n\tath79_eth1_data.duplex = DUPLEX_FULL\;\n\tath79_eth1_data.speed = SPEED_100\;\n\tath79_eth1_data.phy_mask = BIT(4)\;\n\tath79_init_mac(ath79_eth1_data.mac_addr, mac, 2)\;\n\tath79_register_eth(1)\;\n' target/linux/ar71xx/files/arch/mips/ath79/mach-tl-wr802n.c
 cat target/linux/ar71xx/files/arch/mips/ath79/mach-tl-wr802n.c
 
+########################添加仓库里的libcap##################################
+svn checkout "https://github.com/busiXI/lede-WR802N/trunk/libcap" "package/libs/libcap"
+
 #修改feeds.conf.default文件
 sed -i '$a src-git helloworld https://github.com/fw876/helloworld' feeds.conf.default
 sed -i '$a src-git passwall https://github.com/xiaorouji/openwrt-passwall' feeds.conf.default
