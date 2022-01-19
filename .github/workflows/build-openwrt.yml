@@ -78,7 +78,7 @@ jobs:
       
 
     - name: Install feeds
-      run: cd openwrt && ./scripts/feeds install -a
+      run: cd openwrt && ./scripts/feeds install -a && rm -rf tmp && ./scripts/feeds install -f -p helloworld shadowsocksr-libev
 
     - name: Load custom configuration
       run: |
