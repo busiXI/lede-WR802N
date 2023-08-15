@@ -65,9 +65,9 @@ cat target/linux/ar71xx/files/arch/mips/ath79/mach-tl-wr802n.c
 svn checkout "https://github.com/busiXI/lede-WR802N/trunk/libcap" "package/libs/libcap"
 
 ########################添加花生壳内网穿透phtummel##################################
-svn co https://github.com/teasiu/dragino2/trunk/devices/common/diy/package/teasiu/luci-app-phtunnel package/custom/luci-app-phtunnel
-svn co https://github.com/teasiu/dragino2/trunk/devices/common/diy/package/teasiu/phtunnel package/custom/phtunnel
-svn co https://github.com/QiuSimons/dragino2-teasiu/trunk/package/teasiu/luci-app-oray package/custom/luci-app-oray
+#svn co https://github.com/teasiu/dragino2/trunk/devices/common/diy/package/teasiu/luci-app-phtunnel package/custom/luci-app-phtunnel
+#svn co https://github.com/teasiu/dragino2/trunk/devices/common/diy/package/teasiu/phtunnel package/custom/phtunnel
+#svn co https://github.com/QiuSimons/dragino2-teasiu/trunk/package/teasiu/luci-app-oray package/custom/luci-app-oray
 
 #修改feeds.conf.default文件
 sed -i '$a src-git helloworld https://github.com/fw876/helloworld' feeds.conf.default
