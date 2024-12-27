@@ -99,8 +99,12 @@ jobs:
         # Verify the binary size
         ls -lh tailscale.combined
 
+        # Move the generated file to the packages directory
+        mkdir -p ../packages
+        mv tailscale.combined ../packages/
+
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
       with:
         name: tailscale-combined
-        path: tailscale/tailscale.combined
+        path: packages/tailscale.combined
