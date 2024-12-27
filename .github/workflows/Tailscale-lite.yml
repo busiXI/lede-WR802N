@@ -60,13 +60,17 @@ jobs:
         go-version: '1.23'
 
     - name: Install dependencies
-      run: sudo apt-get install -y upx
+      run: sudo apt-get install -y upx jq
 
     - name: Clone Tailscale repository
       run: git clone https://github.com/tailscale/tailscale
 
-    - name: Set VERSION_SHORT environment variable
-      run: echo "VERSION_SHORT=${{ env.CURRENT_VERSION }}" >> $GITHUB_ENV
+    - name: Set VERSION_SHORT and VERSION_LONG environment variables
+      run: |
+        cd tailscale
+        eval $(CGO_ENABLED=0 GOOS=$(go env GOHOSTOS) GOARCH=$(go env GOHOSTARCH) go run ./cmd/mkversion)
+        echo "VERSION_SHORT=${VERSION_SHORT}" >> $GITHUB_ENV
+        echo "VERSION_LONG=${VERSION_LONG}" >> $GITHUB_ENV
 
     - name: Build Small Tailscale Binary
       run: |
