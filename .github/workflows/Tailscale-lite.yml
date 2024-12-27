@@ -103,12 +103,12 @@ jobs:
         mkdir -p ipkg-tailscale/usr/bin
         mv tailscale.combined ipkg-tailscale/usr/bin/tailscale
 
-        mkdir -p ipkg-tailscale/CONTROL
-        echo "Package: tailscale" > ipkg-tailscale/CONTROL/control
-        echo "Version: ${CURRENT_VERSION}" >> ipkg-tailscale/CONTROL/control
-        echo "Architecture: mips" >> ipkg-tailscale/CONTROL/control
-        echo "Maintainer: Your Name <youremail@example.com>" >> ipkg-tailscale/CONTROL/control
-        echo "Description: Tailscale binary for MIPS architecture." >> ipkg-tailscale/CONTROL/control
+        mkdir -p ipkg-tailscale/DEBIAN
+        echo "Package: tailscale" > ipkg-tailscale/DEBIAN/control
+        echo "Version: ${CURRENT_VERSION}" >> ipkg-tailscale/DEBIAN/control
+        echo "Architecture: mips" >> ipkg-tailscale/DEBIAN/control
+        echo "Maintainer: Your Name <youremail@example.com>" >> ipkg-tailscale/DEBIAN/control
+        echo "Description: Tailscale binary for MIPS architecture." >> ipkg-tailscale/DEBIAN/control
 
         # Build IPK package
         dpkg-deb --build ipkg-tailscale
