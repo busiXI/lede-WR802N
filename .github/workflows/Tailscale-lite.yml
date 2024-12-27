@@ -119,7 +119,7 @@ jobs:
     - name: Build and Rename IPK package
       run: |
         dpkg-deb --build ipkg-tailscale
-        mv ipkg-tailscale.deb tailscale_${CURRENT_VERSION}_mips.ipk
+        mv ipkg-tailscale.deb ../tailscale_${CURRENT_VERSION}_mips.ipk
 
     - name: List generated files
       run: ls -lh
