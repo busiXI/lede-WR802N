@@ -99,7 +99,8 @@ jobs:
         # Verify the binary size
         ls -lh tailscale.combined
 
-        # Prepare IPK package structure
+    - name: Prepare IPK package structure
+      run: |
         mkdir -p ipkg-tailscale/usr/bin
         mv tailscale.combined ipkg-tailscale/usr/bin/tailscale
 
@@ -110,7 +111,8 @@ jobs:
         echo "Maintainer: Your Name <youremail@example.com>" >> ipkg-tailscale/DEBIAN/control
         echo "Description: Tailscale binary for MIPS architecture." >> ipkg-tailscale/DEBIAN/control
 
-        # Build IPK package
+    - name: Build and Rename IPK package
+      run: |
         dpkg-deb --build ipkg-tailscale
         mv ipkg-tailscale.deb tailscale_${CURRENT_VERSION}_mips.ipk
 
@@ -128,7 +130,7 @@ jobs:
         draft: false
         prerelease: false
 
-    - name: Upload Release Asset
+    - name: Upload IPK Release Asset
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -136,4 +138,14 @@ jobs:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: tailscale_${CURRENT_VERSION}_mips.ipk
         asset_name: tailscale_${CURRENT_VERSION}_mips.ipk
+        asset_content_type: application/octet-stream
+
+    - name: Upload Combined Binary Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: tailscale/tailscale.combined
+        asset_name: tailscale_${CURRENT_VERSION}_combined
         asset_content_type: application/octet-stream
