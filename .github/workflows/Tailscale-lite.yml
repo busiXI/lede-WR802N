@@ -77,10 +77,24 @@ jobs:
     - name: Build and Compress Tailscale Binary
       run: |
         cd tailscale
-        ./build_dist.sh --extra-small
-        go build -o tailscale.combined -tags ts_include_cli -ldflags="-s -w" ./cmd/tailscaled
+        go="go"
+        if [ -n "${TS_USE_TOOLCHAIN:-}" ]; then
+            go="./tool/go"
+        fi
+
+        eval $(CGO_ENABLED=0 GOOS=$($go env GOHOSTOS) GOARCH=$($go env GOHOSTARCH) $go run ./cmd/mkversion)
+
+        tags=""
+        ldflags="-X tailscale.com/version.longStamp=${VERSION_LONG} -X tailscale.com/version.shortStamp=${VERSION_SHORT}"
+
+        # Handle --extra-small flag
+        ldflags="$ldflags -s -w"
+        tags="${tags:+$tags,}ts_include_cli"
+
+        # Combine the binaries into one and compress it
+        $go build -o tailscale.combined ${tags:+-tags=$tags} -ldflags "$ldflags" ./cmd/tailscaled
         du -hs tailscale.combined
-        upx --lzma --best ./tailscale.combined
+        upx --lzma --best tailscale.combined
         du -hs tailscale.combined
         # Verify the binary size
         ls -lh tailscale.combined
