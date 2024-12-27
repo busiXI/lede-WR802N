@@ -18,20 +18,16 @@ jobs:
 
     - name: Get latest Tailscale version
       id: get_version
-      uses: actions/github-script@v6
-      with:
-        script: |
-          const fetch = globalThis.fetch || require('node-fetch');
-          const response = await fetch('https://api.github.com/repos/tailscale/tailscale/releases/latest');
-          const data = await response.json();
-          return data.tag_name;
+      run: |
+        latest_version=$(curl -s https://api.github.com/repos/tailscale/tailscale/releases/latest | jq -r .tag_name)
+        echo "latest_version=$latest_version" >> $GITHUB_ENV
 
     - name: Set output
       id: set_output
-      run: echo "::set-output name=latest_version::${{ steps.get_version.outputs.result }}"
+      run: echo "::set-output name=latest_version::${{ env.latest_version }}"
 
     - name: Store latest version in a file
-      run: echo "${{ steps.set_output.outputs.latest_version }}" > latest_version.txt
+      run: echo "${{ env.latest_version }}" > latest_version.txt
 
     - name: Commit latest version if changed
       run: |
@@ -39,7 +35,7 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add latest_version.txt
-          git commit -m "Update latest Tailscale version to ${{ steps.set_output.outputs.latest_version }}"
+          git commit -m "Update latest Tailscale version to ${{ env.latest_version }}"
           git push
         else
           echo "No changes in the latest version."
