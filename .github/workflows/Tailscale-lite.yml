@@ -99,8 +99,13 @@ jobs:
         # Verify the binary size
         ls -lh tailscale.combined
 
-    - name: Prepare IPK package structure
+    - name: Verify and Prepare IPK package structure
       run: |
+        if [ ! -f tailscale.combined ]; then
+          echo "Error: tailscale.combined not found!"
+          exit 1
+        fi
+
         mkdir -p ipkg-tailscale/usr/bin
         mv tailscale.combined ipkg-tailscale/usr/bin/tailscale
 
