@@ -114,6 +114,9 @@ jobs:
         dpkg-deb --build ipkg-tailscale
         mv ipkg-tailscale.deb tailscale_${CURRENT_VERSION}_mips.ipk
 
+    - name: List generated files
+      run: ls -lh
+
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
