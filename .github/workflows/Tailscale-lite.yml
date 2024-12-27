@@ -101,13 +101,13 @@ jobs:
 
     - name: Verify and Prepare IPK package structure
       run: |
-        if [ ! -f tailscale.combined ]; then
+        if [ ! -f tailscale/tailscale.combined ]; then
           echo "Error: tailscale.combined not found!"
           exit 1
         fi
 
         mkdir -p ipkg-tailscale/usr/bin
-        mv tailscale.combined ipkg-tailscale/usr/bin/tailscale
+        mv tailscale/tailscale.combined ipkg-tailscale/usr/bin/tailscale
 
         mkdir -p ipkg-tailscale/DEBIAN
         echo "Package: tailscale" > ipkg-tailscale/DEBIAN/control
