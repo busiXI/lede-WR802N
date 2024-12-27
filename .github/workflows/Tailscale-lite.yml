@@ -78,11 +78,27 @@ jobs:
       run: |
         cd tailscale
         ./build_dist.sh --extra-small
+		    go build -o tailscale.combined -tags ts_include_cli -ldflags="-s -w" ./cmd/tailscaled
+		    du -hs tailscale.combined
+		    #18M    tailscale.combined
+		    upx --lzma --best ./tailscale.combined
+		    du -hs tailscale.combined
+		     #4.5M   tailscale.combined
+								 
+													 
+												   
         # Verify the binary size
+										  
         ls -lh tailscale.combined
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
       with:
+							  
         name: tailscale-combined
+
+							
+									  
+		   
+							 
         path: tailscale/tailscale.combined
