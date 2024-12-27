@@ -77,13 +77,13 @@ jobs:
         ls -lh ./cmd/tailscale/tailscale
 
     - name: Upload Artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: small-tailscaled
         path: tailscale/cmd/tailscaled/tailscaled
 
     - name: Upload Artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: small-tailscale
         path: tailscale/cmd/tailscale/tailscale
