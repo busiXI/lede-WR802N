@@ -43,14 +43,19 @@ jobs:
           git push
         else
           echo "No changes in the latest version."
-          
+
   build-tailscale:
     needs: check-tailscale-version
     runs-on: ubuntu-latest
-    if: needs.check-tailscale-version.outputs.latest_version != env.CURRENT_VERSION # 仅在检测到新版本时运行
+    env:
+      CURRENT_VERSION: ${{ steps.read_version.outputs.current_version }}
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
+
+    - name: Read current version
+      id: read_version
+      run: echo "::set-output name=current_version::$(cat latest_version.txt)"
 
     - name: Set up Go
       uses: actions/setup-go@v2
