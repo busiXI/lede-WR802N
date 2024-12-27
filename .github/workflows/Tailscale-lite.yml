@@ -103,8 +103,23 @@ jobs:
         mkdir -p ../packages
         mv tailscale.combined ../packages/
 
-    - name: Upload Artifacts
-      uses: actions/upload-artifact@v3
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        name: tailscale-combined
-        path: packages/tailscale.combined
+        tag_name: ${{ env.CURRENT_VERSION }}
+        release_name: "Release ${{ env.CURRENT_VERSION }}"
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: packages/tailscale.combined
+        asset_name: tailscale.combined
+        asset_content_type: application/octet-stream
