@@ -60,7 +60,7 @@ jobs:
         go-version: '1.23'
 
     - name: Install dependencies
-      run: sudo apt-get install -y upx jq
+      run: sudo apt-get install -y upx jq dpkg-dev
 
     - name: Clone Tailscale repository
       run: git clone https://github.com/tailscale/tailscale
@@ -99,9 +99,20 @@ jobs:
         # Verify the binary size
         ls -lh tailscale.combined
 
-        # Move the generated file to the packages directory
-        mkdir -p ../packages
-        mv tailscale.combined ../packages/
+        # Prepare IPK package structure
+        mkdir -p ipkg-tailscale/usr/bin
+        mv tailscale.combined ipkg-tailscale/usr/bin/tailscale
+
+        mkdir -p ipkg-tailscale/CONTROL
+        echo "Package: tailscale" > ipkg-tailscale/CONTROL/control
+        echo "Version: ${CURRENT_VERSION}" >> ipkg-tailscale/CONTROL/control
+        echo "Architecture: mips" >> ipkg-tailscale/CONTROL/control
+        echo "Maintainer: Your Name <youremail@example.com>" >> ipkg-tailscale/CONTROL/control
+        echo "Description: Tailscale binary for MIPS architecture." >> ipkg-tailscale/CONTROL/control
+
+        # Build IPK package
+        dpkg-deb --build ipkg-tailscale
+        mv ipkg-tailscale.deb tailscale_${CURRENT_VERSION}_mips.ipk
 
     - name: Create Release
       id: create_release
@@ -120,6 +131,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: packages/tailscale.combined
-        asset_name: tailscale.combined
+        asset_path: tailscale_${CURRENT_VERSION}_mips.ipk
+        asset_name: tailscale_${CURRENT_VERSION}_mips.ipk
         asset_content_type: application/octet-stream
