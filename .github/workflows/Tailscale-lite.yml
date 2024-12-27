@@ -21,7 +21,7 @@ jobs:
       uses: actions/github-script@v6
       with:
         script: |
-          const fetch = require('node-fetch');
+          const fetch = globalThis.fetch || require('node-fetch');
           const response = await fetch('https://api.github.com/repos/tailscale/tailscale/releases/latest');
           const data = await response.json();
           return data.tag_name;
