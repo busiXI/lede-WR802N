@@ -71,26 +71,18 @@ jobs:
         eval $(CGO_ENABLED=0 GOOS=$(go env GOHOSTOS) GOARCH=$(go env GOHOSTARCH) go run ./cmd/mkversion)
         echo "VERSION_SHORT=${VERSION_SHORT}" >> $GITHUB_ENV
         echo "VERSION_LONG=${VERSION_LONG}" >> $GITHUB_ENV
+        echo "VERSION_MINOR=${VERSION_MINOR}" >> $GITHUB_ENV
+        echo "VERSION_GIT_HASH=${VERSION_GIT_HASH}" >> $GITHUB_ENV
 
-    - name: Build Small Tailscale Binary
+    - name: Build and Compress Tailscale Binary
       run: |
         cd tailscale
         ./build_dist.sh --extra-small
-        # Compress the binaries using upx
-        upx --best --lzma ./cmd/tailscaled/tailscaled
-        upx --best --lzma ./cmd/tailscale/tailscale
         # Verify the binary size
-        ls -lh ./cmd/tailscaled/tailscaled
-        ls -lh ./cmd/tailscale/tailscale
+        ls -lh tailscale.combined
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: small-tailscaled
-        path: tailscale/cmd/tailscaled/tailscaled
-
-    - name: Upload Artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: small-tailscale
-        path: tailscale/cmd/tailscale/tailscale
+        name: tailscale-combined
+        path: tailscale/tailscale.combined
