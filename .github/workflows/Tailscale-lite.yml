@@ -39,6 +39,7 @@ jobs:
           git push
         else
           echo "No changes in the latest version."
+        fi
 
   build-tailscale:
     needs: check-tailscale-version
