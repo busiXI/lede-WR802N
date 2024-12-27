@@ -47,15 +47,13 @@ jobs:
   build-tailscale:
     needs: check-tailscale-version
     runs-on: ubuntu-latest
-    env:
-      CURRENT_VERSION: ${{ steps.read_version.outputs.current_version }}
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
 
     - name: Read current version
       id: read_version
-      run: echo "::set-output name=current_version::$(cat latest_version.txt)"
+      run: echo "CURRENT_VERSION=$(cat latest_version.txt)" >> $GITHUB_ENV
 
     - name: Set up Go
       uses: actions/setup-go@v2
