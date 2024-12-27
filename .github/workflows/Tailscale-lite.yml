@@ -92,22 +92,22 @@ jobs:
         tags="${tags:+$tags,}ts_include_cli"
 
         # Combine the binaries into one and compress it
-        GOOS=linux GOARCH=mips $go build -o tailscale.combined ${tags:+-tags=$tags} -ldflags "$ldflags" ./cmd/tailscaled
-        du -hs tailscale.combined
-        upx --lzma --best tailscale.combined
-        du -hs tailscale.combined
+        GOOS=linux GOARCH=mips $go build -o ../tailscale.combined ${tags:+-tags=$tags} -ldflags "$ldflags" ./cmd/tailscaled
+        du -hs ../tailscale.combined
+        upx --lzma --best ../tailscale.combined
+        du -hs ../tailscale.combined
         # Verify the binary size
-        ls -lh tailscale.combined
+        ls -lh ../tailscale.combined
 
     - name: Verify and Prepare IPK package structure
       run: |
-        if [ ! -f tailscale.combined ]; then
+        if [ ! -f ../tailscale.combined ]; then
           echo "Error: tailscale.combined not found!"
           exit 1
         fi
 
         mkdir -p ipkg-tailscale/usr/bin
-        mv tailscale.combined ipkg-tailscale/usr/bin/tailscale
+        mv ../tailscale.combined ipkg-tailscale/usr/bin/tailscale
 
         mkdir -p ipkg-tailscale/DEBIAN
         echo "Package: tailscale" > ipkg-tailscale/DEBIAN/control
