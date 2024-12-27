@@ -101,13 +101,13 @@ jobs:
 
     - name: Verify and Prepare IPK package structure
       run: |
-        if [ ! -f tailscale/tailscale.combined ]; then
+        if [ ! -f tailscale.combined ]; then
           echo "Error: tailscale.combined not found!"
           exit 1
         fi
 
         mkdir -p ipkg-tailscale/usr/bin
-        mv tailscale/tailscale.combined ipkg-tailscale/usr/bin/tailscale
+        mv tailscale.combined ipkg-tailscale/usr/bin/tailscale
 
         mkdir -p ipkg-tailscale/DEBIAN
         echo "Package: tailscale" > ipkg-tailscale/DEBIAN/control
@@ -144,7 +144,7 @@ jobs:
         asset_path: ./tailscale.combined
         asset_name: tailscale_${CURRENT_VERSION}_combined
         asset_content_type: application/octet-stream
-        
+
     - name: Upload IPK Release Asset
       uses: actions/upload-release-asset@v1
       env:
