@@ -65,6 +65,9 @@ jobs:
     - name: Clone Tailscale repository
       run: git clone https://github.com/tailscale/tailscale
 
+    - name: Set VERSION_LONG environment variable
+      run: echo "VERSION_LONG=${{ env.CURRENT_VERSION }}" >> $GITHUB_ENV
+
     - name: Build Small Tailscale Binary
       run: |
         cd tailscale
