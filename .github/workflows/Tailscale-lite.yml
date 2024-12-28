@@ -24,10 +24,9 @@ jobs:
 
     - name: Set output
       id: set_output
-      run: echo "latest_version=${{ env.latest_version }}" >> $GITHUB_ENV
-      # 使用环境文件替代 set-output
-      echo "LATEST_VERSION=${latest_version}" >> $GITHUB_ENV
-      echo "LATEST_VERSION=${latest_version}" >> $GITHUB_ENV
+      run: |
+        echo "LATEST_VERSION=${{ env.latest_version }}" >> $GITHUB_ENV
+        echo "LATEST_VERSION=${{ env.latest_version }}" >> $GITHUB_ENV
 
     - name: Store latest version in a file
       run: echo "${{ env.LATEST_VERSION }}" > latest_version.txt
@@ -104,14 +103,14 @@ jobs:
 
     - name: Verify and Prepare IPK package structure
       run: |
-        cd tailscale
-        if [ ! -f ../tailscale.combined ]; then
+        cd ..
+        if [ ! -f tailscale.combined ]; then
           echo "Error: tailscale.combined not found!"
           exit 1
         fi
 
         mkdir -p ipkg-tailscale/usr/bin
-        mv ../tailscale.combined ipkg-tailscale/usr/bin/
+        mv tailscale.combined ipkg-tailscale/usr/bin/tailscale
 
         mkdir -p ipkg-tailscale/DEBIAN
         echo "Package: tailscale" > ipkg-tailscale/DEBIAN/control
@@ -122,9 +121,8 @@ jobs:
 
     - name: Build and Rename IPK package
       run: |
-        cd tailscale
         dpkg-deb --build ipkg-tailscale
-        mv ipkg-tailscale.deb ../tailscale_${CURRENT_VERSION}_mips.ipk
+        mv ipkg-tailscale.deb tailscale_${CURRENT_VERSION}_mips.ipk
 
     - name: List generated files
       run: ls -lh
