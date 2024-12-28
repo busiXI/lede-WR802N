@@ -106,7 +106,7 @@ jobs:
         ls
         ls ..
         cd ..
-        if [ ! -f tailscale.combined ]; then
+        if [ ! -f ../tailscale.combined ]; then
           echo "Error: tailscale.combined not found!"
           exit 1
         fi
