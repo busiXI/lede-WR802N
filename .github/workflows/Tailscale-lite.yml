@@ -92,22 +92,23 @@ jobs:
         tags="${tags:+$tags,}ts_include_cli"
 
         # Combine the binaries into one and compress it
-        GOOS=linux GOARCH=mips $go build -o tailscale.combined ${tags:+-tags=$tags} -ldflags "$ldflags" ./cmd/tailscaled
-        du -hs tailscale.combined
-        upx --lzma --best tailscale.combined
-        du -hs tailscale.combined
+        GOOS=linux GOARCH=mips $go build -o ../tailscale.combined ${tags:+-tags=$tags} -ldflags "$ldflags" ./cmd/tailscaled
+        du -hs ../tailscale.combined
+        upx --lzma --best ../tailscale.combined
+        du -hs ../tailscale.combined
         # Verify the binary size
-        ls -lh tailscale.combined
+        ls -lh ../tailscale.combined
 
     - name: Verify and Prepare IPK package structure
       run: |
-        if [ ! -f tailscale.combined ]; then
+        cd tailscale
+        if [ ! -f ../tailscale.combined ]; then
           echo "Error: tailscale.combined not found!"
           exit 1
         fi
 
         mkdir -p ipkg-tailscale/usr/bin
-        mv tailscale.combined ipkg-tailscale/usr/bin/
+        mv ../tailscale.combined ipkg-tailscale/usr/bin/
 
         mkdir -p ipkg-tailscale/DEBIAN
         echo "Package: tailscale" > ipkg-tailscale/DEBIAN/control
@@ -118,6 +119,7 @@ jobs:
 
     - name: Build and Rename IPK package
       run: |
+        cd tailscale
         dpkg-deb --build ipkg-tailscale
         mv ipkg-tailscale.deb tailscale_${CURRENT_VERSION}_mips.ipk
 
@@ -141,7 +143,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: packages/tailscale.combined
+        asset_path: ./ipkg-tailscale/usr/bin/tailscale
         asset_name: tailscale_${CURRENT_VERSION}_combined
         asset_content_type: application/octet-stream
 
