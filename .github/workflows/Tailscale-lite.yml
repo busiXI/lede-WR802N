@@ -103,6 +103,8 @@ jobs:
 
     - name: Verify and Prepare IPK package structure
       run: |
+        ls
+        ls ..
         cd ..
         if [ ! -f tailscale.combined ]; then
           echo "Error: tailscale.combined not found!"
