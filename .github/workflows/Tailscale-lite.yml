@@ -150,7 +150,7 @@ jobs:
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./ipkg-tailscale/usr/bin/tailscale
-        asset_name: tailscale_${CURRENT_VERSION}_combined
+        asset_name: tailscale_${{ env.CURRENT_VERSION }}_combined
         asset_content_type: application/octet-stream
 
     - name: Upload IPK Release Asset
@@ -159,6 +159,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./tailscale_${CURRENT_VERSION}_mips.ipk
-        asset_name: tailscale_${CURRENT_VERSION}_mips.ipk
+        asset_path: ./tailscale_${{ env.CURRENT_VERSION }}_mips.ipk
+        asset_name: tailscale_${{ env.CURRENT_VERSION }}_mips.ipk
         asset_content_type: application/octet-stream
