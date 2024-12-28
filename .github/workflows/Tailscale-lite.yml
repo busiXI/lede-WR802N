@@ -124,6 +124,8 @@ jobs:
       run: |
         dpkg-deb --build ipkg-tailscale
         mv ipkg-tailscale.deb tailscale_${CURRENT_VERSION}_mips.ipk
+        ls -lh
+        pwd
 
     - name: List generated files
       run: |
