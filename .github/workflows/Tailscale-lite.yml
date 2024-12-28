@@ -2,8 +2,8 @@ name: Check and Build Tailscale-lite New Version
 
 on:
   push:
-    branches:
-      - main
+    #branches:
+      #- main
   schedule:
     - cron: '0 0 * * 0' # 每周检查一次（周日凌晨）
 
