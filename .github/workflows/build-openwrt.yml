@@ -90,7 +90,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: openwrt-firmware
-        path: openwrt/bin/targets/ath79/tiny/openwrt-ath79-*.bin
+        path: openwrt/bin/targets/openwrt-ath79-*.bin
 
     - name: Get release metadata
       id: metadata
@@ -121,6 +121,6 @@ jobs:
           ### 更新内容
           ${{ steps.metadata.outputs.COMMITS }}
         files: |
-          openwrt/bin/targets/ath79/tiny/openwrt-ath79-*.bin
+          openwrt/bin/targets/openwrt-ath79-*.bin
         draft: false
         prerelease: false
