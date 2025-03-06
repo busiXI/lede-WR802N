@@ -1,199 +1,126 @@
-#
-# Copyright (c) 2019-2020 P3TERX <https://p3terx.com>
-#
-# This is free software, licensed under the MIT License.
-# See /LICENSE for more information.
-#
-# https://github.com/P3TERX/Actions-OpenWrt
-# Description: Build OpenWrt using GitHub Actions
-#
-
-name: Build OpenWrt
+name: WR802N-v1 Build
 
 on:
-  repository_dispatch:
-  workflow_dispatch:
-    inputs:
-      ssh:
-        description: 'SSH connection to Actions'
-        required: false
-        default: 'false'
   push:
-    paths:
-      - 'CHANGELOG.md'
-
-env:
-  REPO_URL: https://github.com/coolsnowwolf/lede
-  REPO_BRANCH: 20200915
-  FEEDS_CONF: feeds.conf.default
-  CONFIG_FILE: wr802n(lite).config
-  #MACH_FILE: mach-tl-wr802n.c
-  DIY_P1_SH: diy-part1.sh
-  DIY_P2_SH: diy-part2.sh
-  UPLOAD_BIN_DIR: false
-  UPLOAD_FIRMWARE: true
-  UPLOAD_COWTRANSFER: false
-  UPLOAD_WETRANSFER: false
-  UPLOAD_RELEASE: true
-  TZ: Asia/Shanghai
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@main
+    - name: Checkout repo
+      uses: actions/checkout@v4
+      with:
+        path: config-repo
 
-    - name: Initialization environment
-      env:
-        DEBIAN_FRONTEND: noninteractive
+    - name: Cache OpenWrt
+      uses: actions/cache@v3
+      id: openwrt-cache
+      with:
+        path: |  # 缓存路径
+          openwrt/dl       # 下载目录
+          openwrt/build_dir # 构建目录
+          ~/.ccache            # 编译缓存
+        key: ${{ runner.os }}-openwrt-${{ hashFiles('openwrt/scripts/feeds') }}
+        restore-keys: |  # 缓存回退机制
+          ${{ runner.os }}-openwrt-
+
+    - name: Clone OpenWrt
       run: |
-        sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc
-        sudo -E apt-get -qq update
-        sudo -E apt-get -qq install $(curl -fsSL git.io/depends-ubuntu-2004)
-        sudo -E apt-get -qq autoremove --purge
-        sudo -E apt-get -qq clean
-        sudo timedatectl set-timezone "$TZ"
-        sudo mkdir -p /workdir
-        sudo chown $USER:$GROUPS /workdir
+        git clone --branch master  https://github.com/coolsnowwolf/lede
 
-    - name: Clone source code
-      working-directory: /workdir
+    - name: Install Build Dependencies
       run: |
-        df -hT $PWD
-        git clone $REPO_URL -b $REPO_BRANCH openwrt
-        ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
+        sudo apt-get update
+        sudo apt-get install -y \
+          ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
+          bzip2 ccache clang cmake cpio curl device-tree-compiler flex gawk gcc-multilib g++-multilib gettext \
+          genisoimage git gperf haveged help2man intltool libc6-dev-i386 libelf-dev libfuse-dev libglib2.0-dev \
+          libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses5-dev libncursesw5-dev libpython3-dev \
+          libreadline-dev libssl-dev libtool llvm lrzsz msmtp ninja-build p7zip p7zip-full patch pkgconf \
+          python3 python3-pyelftools python3-setuptools qemu-utils rsync scons squashfs-tools subversion \
+          swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev
 
-    - name: Load custom feeds
+    - name: Setup Python
       run: |
-        [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
-        chmod +x $DIY_P1_SH
-        cd openwrt
-        $GITHUB_WORKSPACE/$DIY_P1_SH
+        python3 -m venv ~/venv
+        source ~/venv/bin/activate
 
-    - name: Update feeds
-      run: cd openwrt && ./scripts/feeds update -a #&& rm -rf ./feeds/packages/lang/ruby && cp -r ./ruby ./feeds/packages/lang && cat ./feeds/packages/lang/ruby/Makefile
-
-      
-
-    - name: Install feeds
-      run: cd openwrt && ./scripts/feeds install -a && rm -rf tmp && ./scripts/feeds install -f -p helloworld shadowsocksr-libev
-
-    - name: Load custom configuration
-      run: |
-        [ -e files ] && mv files openwrt/files
-        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
-        #[ -e $MACH_FILE ] && mv $MACH_FILE openwrt/target/linux/ath79/files/arch/mips/ath79/mach-tl-wr802n.c
-        #cat openwrt/target/linux/ath79/files/arch/mips/ath79/mach-tl-wr802n.c
-        chmod +x $DIY_P2_SH
-        cd openwrt
-        $GITHUB_WORKSPACE/$DIY_P2_SH
-
-    - name: SSH connection to Actions
-      uses: P3TERX/ssh2actions@v1.0.0
-      if: (github.event.inputs.ssh == 'true' && github.event.inputs.ssh  != 'false') || contains(github.event.action, 'ssh')
-      env:
-        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-
-    - name: Download package
-      id: package
+    - name: Apply Patches
       run: |
         cd openwrt
+        sed -i '343s/4mlzma/16mlzma/g' target/linux/ath79/image/tiny-tp-link.mk
+        cat target/linux/ath79/image/tiny-tp-link.mk
+        
+        sed -i '70s/0x3d0000/0xfd0000/g' target/linux/ath79/dts/qca9533_tplink_tl-wr802n.dtsi
+        sed -i '76s/0x3f0000/0xff0000/g' target/linux/ath79/dts/qca9533_tplink_tl-wr802n.dtsi
+        cat target/linux/ath79/dts/qca9533_tplink_tl-wr802n.dtsi
+        
+        
+        # 更新并应用补丁
+        ./scripts/feeds update -a
+        ./scripts/feeds install -a
+        
+        # 复制配置文件
+        cp -r ../config-repo/files files
+        find files/etc/config -type d -exec chmod 0755 {} \;
+        find files/etc/config -type f -exec chmod 0644 {} \;
+        cp ../config-repo/.config .
+
+    - name: Build Firmware
+      run: |
+        set -euxo pipefail
+        cd openwrt
+        source ~/venv/bin/activate
+        
         make defconfig
-        make download -j8
-        find dl -size -1024c -exec ls -l {} \;
-        find dl -size -1024c -exec rm -f {} \;
+        sed -i 's/CONFIG_INITRAMFS_COMPRESSION_LZ4=y/# CONFIG_INITRAMFS_COMPRESSION_LZ4 is not set/' .config
+        sed -i 's/CONFIG_RD_LZ4=y/# CONFIG_RD_LZ4 is not set/' .config
+        sed -i 's/CONFIG_INITRAMFS_COMPRESSION_ZSTD=y/# CONFIG_INITRAMFS_COMPRESSION_ZSTD is not set/' .config
+        sed -i 's/CONFIG_RD_ZSTD=y/# CONFIG_RD_ZSTD is not set/' .config
+        
+        make V=s -j1
 
-    - name: Compile the firmware
-      id: compile
-      run: |
-        cd openwrt
-        echo -e "$(nproc) thread compile"
-        make -j$(nproc) || make -j1 || make -j1 V=s
-        echo "::set-output name=status::success"
-        grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
-        [ -s DEVICE_NAME ] && echo "DEVICE_NAME=_$(cat DEVICE_NAME)" >> $GITHUB_ENV
-        echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
-
-    - name: Check space usage
-      if: (!cancelled())
-      run: df -hT
-
-    - name: Upload bin directory
-      uses: actions/upload-artifact@main
-      if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
       with:
-        name: OpenWrt_bin${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
-        path: openwrt/bin
+        name: openwrt-firmware
+        path: openwrt/bin/targets/ath79/tiny/openwrt-ath79-*.bin
 
-    - name: Organize files
-      id: organize
-      if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
+    - name: Get release metadata
+      id: metadata
       run: |
-        cd openwrt/bin/targets/*/*
-        rm -rf packages
-        echo "FIRMWARE=$PWD" >> $GITHUB_ENV
-        echo "::set-output name=status::success"
+        echo "DATE=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+        echo "TIME=$(date +'%H%M')" >> $GITHUB_OUTPUT
+        echo "SHA_SHORT=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        
+        # 获取提交信息（仅push事件）
+        if [ "${{ github.event_name }}" = "push" ]; then
+          echo "COMMITS=$(git log --pretty=format:'- %s (%%h)' ${{ github.event.before }}..${{ github.sha }} | sed 's/%/%%/g')" >> $GITHUB_OUTPUT
+        else
+          echo "COMMITS=Manual workflow dispatch" >> $GITHUB_OUTPUT
+        fi
 
-    - name: Upload firmware directory
-      uses: actions/upload-artifact@main
-      if: steps.organize.outputs.status == 'success' && !cancelled()
-      with:
-        name: OpenWrt_firmware${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
-        path: ${{ env.FIRMWARE }}
-
-    - name: Upload firmware to cowtransfer
-      id: cowtransfer
-      if: steps.organize.outputs.status == 'success' && env.UPLOAD_COWTRANSFER == 'true' && !cancelled()
-      run: |
-        curl -fsSL git.io/file-transfer | sh
-        ./transfer cow --block 2621440 -s -p 64 --no-progress ${FIRMWARE} 2>&1 | tee cowtransfer.log
-        echo "::warning file=cowtransfer.com::$(cat cowtransfer.log | grep https)"
-        echo "::set-output name=url::$(cat cowtransfer.log | grep https | cut -f3 -d" ")"
-
-    - name: Upload firmware to WeTransfer
-      id: wetransfer
-      if: steps.organize.outputs.status == 'success' && env.UPLOAD_WETRANSFER == 'true' && !cancelled()
-      run: |
-        curl -fsSL git.io/file-transfer | sh
-        ./transfer wet -s -p 16 --no-progress ${FIRMWARE} 2>&1 | tee wetransfer.log
-        echo "::warning file=wetransfer.com::$(cat wetransfer.log | grep https)"
-        echo "::set-output name=url::$(cat wetransfer.log | grep https | cut -f3 -d" ")"
-
-    - name: Generate release tag
-      id: tag
-      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
-      run: |
-        echo "::set-output name=release_tag::$(date +"%Y.%m.%d-%H%M")"
-        touch release.txt
-        cat release.txt
-        [ $UPLOAD_COWTRANSFER = true ] && echo "🔗 [Cowtransfer](${{ steps.cowtransfer.outputs.url }})" >> release.txt
-        [ $UPLOAD_WETRANSFER = true ] && echo "🔗 [WeTransfer](${{ steps.wetransfer.outputs.url }})" >> release.txt
-        echo "::set-output name=status::success"
-
-    - name: Upload firmware to release
+    # 新增步骤：发布到GitHub Release
+    - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
-      if: steps.tag.outputs.status == 'success' && !cancelled()
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      if: github.ref == 'refs/heads/main' && success()
       with:
-        tag_name: ${{ steps.tag.outputs.release_tag }}
-        body_path: release.txt
-        files: ${{ env.FIRMWARE }}/*
+        tag_name: release-${{ steps.metadata.outputs.DATE }}-${{ steps.metadata.outputs.TIME }}
+        name: WR802N-v1 (${{ steps.metadata.outputs.DATE }})
+        body: | 
+          ### 构建信息
+          - 提交哈希: [${{ steps.metadata.outputs.SHA_SHORT }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
+          - 构建时间: ${{ steps.metadata.outputs.DATE }} ${{ steps.metadata.outputs.TIME }}
 
-    - name: Delete workflow runs
-      uses: GitRML/delete-workflow-runs@main
-      with:
-        retain_days: 10
-        keep_minimum_runs: 3
-
-    - name: Remove old Releases
-      uses: dev-drprasad/delete-older-releases@v0.1.0
-      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
-      with:
-        keep_latest: 15
-        delete_tags: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ### 更新内容
+          ${{ steps.metadata.outputs.COMMITS }}
+        files: |
+          openwrt/bin/targets/ath79/tiny/openwrt-ath79-*.bin
+        draft: false
+        prerelease: false
